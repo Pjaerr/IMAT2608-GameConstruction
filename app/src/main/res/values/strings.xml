@@ -1,3 +1,14 @@
 <resources>
-    <string name="app_name">IMAT2608-Galaga</string>
+    <string name="app_name">Galaga</string>
+    <string name="start">Start</string>
+    <string name="options">Options</string>
+    <string name="quit">Quit</string>
+    <string name="backToMenu">Back to Main Menu</string>
+    <string name="enablesound">Enable Sound</string>
+
+
+
+    <string name="endStateWin">You Win!</string>
+    <string name="endStateLose">You Lose!</string>
+    <string name="wavesCompleted">Waves Completed: %1$d</string>
 </resources>
