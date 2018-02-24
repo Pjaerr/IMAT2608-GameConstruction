@@ -1,4 +1,4 @@
-package jackson.joshua.imat2608_galaga;
+package View;
 
 import android.content.Intent;
 import android.os.Handler;
@@ -7,6 +7,9 @@ import android.os.Bundle;
 import android.util.DisplayMetrics;
 import android.view.View;
 import android.widget.ImageView;
+
+import Model.PreferenceManager;
+import jackson.joshua.imat2608_galaga.R;
 
 
 public class MainMenu extends AppCompatActivity
@@ -21,7 +24,7 @@ public class MainMenu extends AppCompatActivity
     /*Starts the game when the Start button is clicked.*/
     public void startGame(View view)
     {
-        Intent intent = new Intent(MainMenu.this, Game.class);
+        Intent intent = new Intent(MainMenu.this, GameActivity.class);
         startActivity(intent);
         finish();
     }
@@ -66,8 +69,10 @@ public class MainMenu extends AppCompatActivity
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         setContentView(R.layout.activity_main_menu);
 
+        getWindow().getDecorView().setSystemUiVisibility(PreferenceManager.get().mUIFlags);
         getWindowManager().getDefaultDisplay().getMetrics(m_displayMetrics);
         m_width = m_displayMetrics.widthPixels;
         shipSprite = findViewById(R.id.ship);

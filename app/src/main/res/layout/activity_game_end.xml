@@ -5,7 +5,7 @@
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
     android:background="@color/defaultBackgroundColour"
-    tools:context="jackson.joshua.imat2608_galaga.GameEnd">
+    tools:context="jackson.joshua.imat2608_galaga.View.GameEnd">
 
     <TextView
         android:id="@+id/title"

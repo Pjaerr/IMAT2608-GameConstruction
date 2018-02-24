@@ -1,4 +1,4 @@
-package jackson.joshua.imat2608_galaga;
+package View;
 
 import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
@@ -6,22 +6,27 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.TextView;
 
-public class GameEnd extends AppCompatActivity
+import Model.PreferenceManager;
+import jackson.joshua.imat2608_galaga.R;
+
+public class GameEndActivity extends AppCompatActivity
 {
-    TextView title;
-    TextView wavesCompleted;
+    TextView title; //Reference to the title in the XML.
+    TextView wavesCompleted; //Reference to the waves completed in the XML.
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_game_end);
 
+        /*Setup immersive fullscreen.*/
+        getWindow().getDecorView().setSystemUiVisibility(PreferenceManager.get().mUIFlags);
 
+       title = findViewById(R.id.title); //Store a reference to the title.
+       wavesCompleted = findViewById(R.id.waves); //Store a reference to the waves completed text.
 
-       title = findViewById(R.id.title);
-       wavesCompleted = findViewById(R.id.waves);
-
-
+        /*When activity is loaded, check to see if the game was won. If it was, set the text and colour
+        * of the title text accordingly.*/
         if (PreferenceManager.get().gameIsWon)
         {
             title.setText(getResources().getString(R.string.endStateWin));
@@ -33,12 +38,14 @@ public class GameEnd extends AppCompatActivity
             title.setTextColor(getResources().getColor(R.color.endColorLose));
         }
 
+        /*Set the text of waves completed to the number of waves completed.*/
         wavesCompleted.setText(String.format(getResources().getString(R.string.wavesCompleted), PreferenceManager.get().wavesCompleted));
     }
 
+    /*Called via button click, returns to the main menu activity.*/
     public void backToMenu(View view)
     {
-        Intent intent = new Intent(GameEnd.this, MainMenu.class);
+        Intent intent = new Intent(GameEndActivity.this, MainMenu.class);
         startActivity(intent);
         finish();
     }

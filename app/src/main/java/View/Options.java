@@ -1,9 +1,12 @@
-package jackson.joshua.imat2608_galaga;
+package View;
 
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.CheckBox;
+
+import Model.PreferenceManager;
+import jackson.joshua.imat2608_galaga.R;
 
 public class Options extends AppCompatActivity
 {
@@ -12,6 +15,7 @@ public class Options extends AppCompatActivity
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_options);
+        getWindow().getDecorView().setSystemUiVisibility(PreferenceManager.get().mUIFlags);
     }
 
     public void enableSound(View view)
