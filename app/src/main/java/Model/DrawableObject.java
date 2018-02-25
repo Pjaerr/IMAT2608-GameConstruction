@@ -11,7 +11,7 @@ import android.graphics.drawable.Drawable;
 * a resources from the drawables folder.*/
 public class DrawableObject
 {
-    private Vector2i m_pos; //The left and top of this object's bounding rectangle.
+    protected Vector2i m_pos; //The left and top of this object's bounding rectangle.
     private Vector2i m_scale; //The right and bottom of this object's bounding rectangle.
 
     private Drawable m_sprite; //Reference to the image passed when this object is constructed.
@@ -60,5 +60,10 @@ public class DrawableObject
     public Rect getBoundingRect()
     {
         return m_sprite.getBounds();
+    }
+
+    public Vector2i getPos()
+    {
+        return m_pos;
     }
 }

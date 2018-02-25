@@ -1,5 +1,6 @@
 package Model;
 
+import android.graphics.Canvas;
 import android.graphics.drawable.Drawable;
 
 /*The DrawableObject representing the player ship that sits at the bottom
@@ -13,6 +14,7 @@ public class Player extends DrawableObject
     {
         super(image, position, scale);
     }
+
 
     public boolean isDead()
     {
