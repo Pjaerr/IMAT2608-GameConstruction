@@ -2,9 +2,6 @@ package Model;
 
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
-import android.util.Log;
-
-import java.util.logging.Logger;
 
 import Presenter.Collision;
 
@@ -42,13 +39,11 @@ public class Enemy extends DrawableObject
             {
                 nextDestination = pointB;
                 movingDir = 1;
-                Log.d("Col", "Collided with Left hand side");
             }
             else
             {
                 nextDestination = pointA;
                 movingDir = -1;
-                Log.d("Enemy Collision", "Collided with right hand side");
             }
         }
     }

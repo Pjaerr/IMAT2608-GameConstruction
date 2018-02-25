@@ -8,17 +8,23 @@ import android.graphics.Rect;
 
 import Presenter.Collision;
 
+/*The class holding the level boundaries. The level boundaries are
+* universal and clogged up the GameLoop class, so they are extracted out
+* here and initialised via the GameLoop. This class also includes some helper
+* functions for checking collision with the boundaries, limiting the number
+* of Collision objects between activities.*/
 public class LevelBoundaries
 {
-    Collision collision;
-    Point m_screenSize;
+    Collision collision; //Used to check for collisions
+    Point m_screenSize; //Reference to the screen size.
 
     /*Boundaries*/
-    public Rect left;
-    public Rect right;
-    public Rect top;
-    public Rect bottom;
+    public Rect left; //Left side boundary.
+    public Rect right; //Right side boundary.
+    public Rect top; //Top boundary.
+    public Rect bottom; //Bottom boundary.
 
+    /*Takes the screen size and sets up the level boundaries using them.*/
     public LevelBoundaries(Point screenSize)
     {
         collision = new Collision();
@@ -39,6 +45,7 @@ public class LevelBoundaries
 
     Paint paint = new Paint();
 
+    /*Primarily used for debugging, will draw rectangles at each boundary.*/
     public void draw(Canvas canvas)
     {
         paint.setColor(Color.RED);
@@ -55,6 +62,7 @@ public class LevelBoundaries
         canvas.drawRect((float)bottom.left, (float)bottom.top,
                 (float)bottom.right, (float)bottom.bottom, paint);
     }
+
 
     public boolean isCollidingWithLeft(Rect rect)
     {
