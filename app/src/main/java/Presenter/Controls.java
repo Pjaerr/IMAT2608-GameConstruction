@@ -9,17 +9,19 @@ import android.util.Log;
 
 public class Controls
 {
-    Paint paint = new Paint();
+    Paint paint = new Paint(); //Used to draw to a canvas.
 
-    Collision collision = new Collision();
+    Collision collision = new Collision(); //Used to check for collisions.
 
-    Rect fireButton;
-    Rect moveLeftButton;
-    Rect moveRightButton;
+    Rect fireButton; //Reference to the button used to fire a missle.
+    Rect moveLeftButton; //Reference to the button used to move left.
+    Rect moveRightButton; //Reference to the button used to move right.
 
     public Controls()
     {
     }
+
+    /*Takes a Rect to be used as the respective buttons.*/
 
     public void setupMoveLeftButton(Rect rect)
     {
@@ -37,6 +39,9 @@ public class Controls
 
     public void draw(Canvas canvas)
     {
+        /*Used until button images are put in place to draw boxes around each
+        * button.*/
+
         paint.setStyle(Paint.Style.STROKE);
         paint.setStrokeWidth(3);
         paint.setAlpha(80);
@@ -53,6 +58,9 @@ public class Controls
                 (float)moveRightButton.right, (float)moveRightButton.bottom, paint);
     }
 
+
+    /*Helper functions to check whether the rectangle placed where a touch has occured
+    * is within the respective buttons.*/
     public boolean isTouchingMoveLeftButton(Rect touchRect)
     {
         return (collision.RectInRect(moveLeftButton, touchRect));

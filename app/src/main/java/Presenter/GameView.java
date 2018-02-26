@@ -1,12 +1,17 @@
 package Presenter;
 
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Canvas;
 import android.graphics.Point;
 import android.os.Process;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
+import android.view.Window;
+
+import View.GameEndActivity;
 
 /*This is the class that initiates the game loop on a seperate thread and then
 * continously calls the functions found within the GameLoop class. Acting as the
@@ -32,6 +37,12 @@ public class GameView extends SurfaceView implements Runnable
         gameLoop.Start(); //Start the game loop.
     }
 
+    private float deltaTime = 0;
+
+    long previousTime = System.nanoTime();
+    final int FPS = 60;
+    final long OPTIMAL_TIME = 1000000000 / FPS; //Optimal time is 60 frames every second.
+
     public void run()
     {
         /*This thread should run in the background.*/
@@ -46,16 +57,35 @@ public class GameView extends SurfaceView implements Runnable
                 continue; //Skip rest of logic this loop.
             }
 
+            long currentTime = System.nanoTime(); //Get the current time.
+            long timeTaken = currentTime - previousTime; //The time taken for the previous loop to complete.
+            previousTime = currentTime; //Set the previous time.
+
+            deltaTime = timeTaken / ((float)OPTIMAL_TIME); //Delta time. (The value to update by).
+
             Canvas canvas = m_surfaceHolder.lockCanvas(); //Lock canvas.
-            gameLoop.Update(); //Update the game.
+            gameLoop.Update(deltaTime); //Update the game.
             gameLoop.Draw(canvas);   //Draw to canvas.
             m_surfaceHolder.unlockCanvasAndPost(canvas); //Unlock canvas.
+
+            /*Ensure each frame takes 10 milliseconds so that frames are consistent, if a frame is
+            * completed in under 10 seconds, put the thread to sleep for the rest of the time.*/
+            try
+            {
+                Thread.sleep(previousTime - System.nanoTime() + OPTIMAL_TIME / 1000000);
+            }
+            catch (Exception e){
+                Log.d("Thread", "Tried to put thread to sleep");
+            }
         }
+
+
     }
 
     public void pause()
     {
         isPaused = true;
+
         while(true)
         {
             try{

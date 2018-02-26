@@ -10,11 +10,15 @@ public class Player extends DrawableObject
     private int lives = 5;
 
     /*Player constructor, sets up the parent constructor of DrawableObject.*/
-    public Player(Drawable image, Vector2i position, Vector2i scale)
+    public Player(Drawable image, Vector2f position, Vector2f scale)
     {
         super(image, position, scale);
     }
 
+    public void removeLife()
+    {
+        lives--;
+    }
 
     public boolean isDead()
     {

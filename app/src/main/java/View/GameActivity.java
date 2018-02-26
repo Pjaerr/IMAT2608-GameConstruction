@@ -1,10 +1,10 @@
 package View;
 
+import android.app.ActionBar;
 import android.content.Intent;
 import android.graphics.Point;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.util.DisplayMetrics;
 import android.view.View;
 
 import Model.PreferenceManager;
@@ -19,10 +19,12 @@ public class GameActivity extends AppCompatActivity
    @Override
     protected void onCreate(Bundle savedInstanceState)
    {
-       super.onCreate(savedInstanceState);
-
        /*Setup fullscreen immersive window.*/
        getWindow().getDecorView().setSystemUiVisibility(PreferenceManager.get().mUIFlags);
+
+       super.onCreate(savedInstanceState);
+
+
 
        /*Get the screensize and pass the metrics to Point screenSize.*/
        Point screenSize = new Point();
@@ -47,6 +49,8 @@ public class GameActivity extends AppCompatActivity
    protected void onResume()
    {
        super.onResume();
+
+       getWindow().getDecorView().setSystemUiVisibility(PreferenceManager.get().mUIFlags);
        gameView.resume(); //Resume the thread the game view is running on.
    }
 

@@ -42,7 +42,7 @@ public class MainMenu extends AppCompatActivity
 
     private void animateShipSprite()
     {
-        if (x >= m_width)
+        if (x >= m_width - 240)
         {
             hasReachedMaxWidth = true;
             hasReachedMinWidth = false;
@@ -55,11 +55,11 @@ public class MainMenu extends AppCompatActivity
 
         if (!hasReachedMaxWidth)
         {
-            x+=3;
+            x+=4;
         }
         else if (!hasReachedMinWidth)
         {
-            x-=3;
+            x-=4;
         }
 
         shipSprite.setX(x);

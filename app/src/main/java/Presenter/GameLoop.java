@@ -1,70 +1,252 @@
 package Presenter;
 
+import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.Paint;
 import android.graphics.Point;
 import android.graphics.PorterDuff;
 import android.graphics.Rect;
-import android.util.Log;
 import android.view.MotionEvent;
+
+import java.util.Random;
+import java.util.Vector;
 
 import Model.Bullet;
 import Model.Enemy;
 import Model.LevelBoundaries;
-import Model.Vector2i;
+import Model.PreferenceManager;
+import Model.Vector2f;
+import View.GameEndActivity;
 import jackson.joshua.imat2608_galaga.R;
-
 
 import Model.Player;
 
 /*The class that controls what exactly happens during each game loop but the
 * workings of the game loop are abstracted away.*/
-public class GameLoop
+class GameLoop
 {
+    /*Stuff taken from parent activity.*/
+    private Context m_context; //Reference to the parent activity context.
     private Point m_screenSize; //Reference to the screen dimensions.
+
+
 
     /*Player*/
     private Player player; //Reference to the player.
     private int movingDir = 0; // Left: -1, Right: 1, Stationary: 0
 
-    /*Level Boundary Collisions*/
+
+
+    /*Level Boundaries and Collisions*/
     private LevelBoundaries levelBounds; //Contains the level boundaries and helper functions.
+    private Collision collision;
+
+
 
     /*Controls*/
-    Controls controls;
+    private Controls controls;
+    private Rect touchRect = new Rect(0, 0, 0, 0); //Rectangle covering what is being touched right now.
+
+
 
     /*Enemies*/
-    Enemy[] staticEnemies; //Array of static enemies.
-    int xPlacement = 0; //Where to place each enemy on the X.
-    int yPlacement = 100; //Where to place each enemy on the Y.
+    private Vector<Enemy> staticEnemies; //Static Enemies.
+    private Bullet[] staticEnemyBullets; //Array of bullets corresponding to number of static enemies.
+    private boolean staticEnemiesIsEmpty = true; //Are there any static enemies left?
+    private Vector2f staticEnemyPlacement = new Vector2f(0, 100); //Where to place static enemies on the X and Y.
+    private int m_numberOfStaticEnemies = 4;
+    private int m_staticEnemyLives = 1;
+
+
 
     /*Player's Bullets*/
     private Bullet[] playerBullets;
 
-    public GameLoop(Point screenSize, Context context)
-    {
-        m_screenSize = screenSize;
 
+
+    /*For random number generation.*/
+    private Random rand = new Random();
+    private int chanceToFireBullet = 500; //The chance an enemy fires a bullet in any given frame. 1 in chanceToFireBullet.
+
+
+
+    /*Wave Stuff*/
+    private int waveNumber = 1;
+
+
+
+    GameLoop(Point screenSize, Context context)
+    {
+        m_context = context;
+        m_screenSize = screenSize;
         levelBounds = new LevelBoundaries(m_screenSize);
+        collision = new Collision();
 
         /*Initialise the player with the ship sprite in the drawable folder. Place
         * the player half way along the x axis and 100 pixels above the bottom of
         * the screen with a width and height of 100.*/
-        player = new Player(context.getResources().getDrawable(R.drawable.player_ship),
-                 new Vector2i(m_screenSize.x / 2, m_screenSize.y - 100),
-                 new Vector2i(100, 100));
+        player = new Player(m_context.getResources().getDrawable(R.drawable.player_ship),
+                 new Vector2f(m_screenSize.x / 2, m_screenSize.y - 100),
+                 new Vector2f(100, 100));
 
-        setupEnemies(context, 7);
-        setupPlayerBullets(context, 5);
+        setupEnemies(m_numberOfStaticEnemies, m_staticEnemyLives); //Setup the enemies.
+        setupPlayerBullets(5); //Give the player 5 bullets.
+    }
+
+
+
+    /*Start() is called once before any other gameloop functions.*/
+    void Start()
+    {
+        setupControls(); //Create the controls on screen.
+    }
+
+
+
+    private int frame = 0; //Increased by 1 every time Update is called.
+
+    /*Update() is called every loop.*/
+    void Update(float deltaTime)
+    {
+        if (staticEnemiesIsEmpty) //Can change to check for dynamic enemies in the future too.
+        {
+            newWave(); //Launch a new wave.
+        }
+
+        /*
+        * Move the player.
+        * Check for collisions with level boundaries.
+        * */
+        updatePlayer(deltaTime);
+
+        if (!staticEnemiesIsEmpty) //If there are still static enemies in the level.
+        {
+            /*
+            * Moves static enemies.
+            * Checks if any of the player's bullets have hit a static enemy.
+            * Controls static enemies shooting their bullets.
+            * */
+            updateStaticEnemies(deltaTime);
+        }
+
+        /*
+        * Moves each bullet if needed.
+        * Checks if a static enemy bullet has hit the player.
+        * */
+        updateBullets(deltaTime);
+
+        /*Only allow the player to fire a bullet everytime a certain
+        * amount of frames has passed.*/
+        if (frame % fireRate == 0)
+        {
+            okayToFire = true;
+        }
+
+        frame++; //Increase the frame count.
+    }
+
+
+
+    private Paint paint = new Paint();
+    /*Draw() is called every loop and contains a reference to the canvas that needs to be
+    * drawn to.*/
+    void Draw(Canvas canvas)
+    {
+        canvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR); //Draw background colour.
+
+        paint.setColor(Color.WHITE);
+        paint.setTextSize(40);
+
+        canvas.drawText("Lives: " + player.getLives(), 0, m_screenSize.y / 2 - 20, paint);
+        canvas.drawText("Wave: " + waveNumber, 200, m_screenSize.y / 2 - 20, paint);
+
+        controls.draw(canvas);
+
+        player.draw(canvas); //Draw the player.
+
+        /*Draw all of the players bullets if they are in motion.*/
+        for (int i = 0; i < playerBullets.length; i++)
+        {
+            if (playerBullets[i].isActive)
+            {
+                playerBullets[i].draw(canvas);
+            }
+        }
+
+        /*Draw all of the static enemy's bullets if they are in motion.*/
+        for (int i = 0; i < staticEnemyBullets.length; i++)
+        {
+            if (staticEnemyBullets[i].isActive)
+            {
+                staticEnemyBullets[i].draw(canvas);
+            }
+        }
+
+        /*Draw all of the static enemies.*/
+        for (int i =0; i < staticEnemies.size(); i++)
+        {
+            staticEnemies.elementAt(i).draw(canvas);
+        }
 
 
     }
 
-    /*Start() is called once before any other gameloop functions.*/
-    public void Start()
+
+
+    //----------SETUP FUNCTIONS----------
+
+    /*Places enemies in the level. Gets called once when GameLoop is constructed.*/
+    private void setupEnemies(int numberOfEnemies, int numberOfLives)
     {
-        setupControls();
+        /*Start X at 0 and increase by 40 until m_screenSize.x - 200 is reached. Move along X until
+        * no more space, then move down to the Y.*/
+        /*Start Y at 100 and increase by 100 until 500 is reached.*/
+
+        staticEnemies = new Vector<Enemy>(numberOfEnemies);
+
+        staticEnemiesIsEmpty = false;
+
+        staticEnemyBullets = new Bullet[numberOfEnemies];
+
+        for (int i = 0; i < numberOfEnemies; i++)
+        {
+            staticEnemies.addElement(new Enemy(m_context.getResources().getDrawable(R.drawable.enemy1_a),
+                    new Vector2f(staticEnemyPlacement.x, staticEnemyPlacement.y), new Vector2f(100, 100)));
+
+            staticEnemyBullets[i] = new Bullet(m_context.getResources().getDrawable(R.drawable.enemy_missle),
+                    new Vector2f(staticEnemyPlacement.x, staticEnemyPlacement.y), new Vector2f(100, 100), levelBounds.bottom, 1);
+
+            staticEnemies.get(i).setNumberOfLives(numberOfLives);
+
+            if (staticEnemyPlacement.x < m_screenSize.x - 200)
+            {
+                staticEnemyPlacement.x += 300;
+            }
+            else
+            {
+                staticEnemyPlacement.x = 0;
+
+                if (staticEnemyPlacement.y < 500)
+                {
+                    staticEnemyPlacement.y += 100;
+                }
+            }
+        }
+    }
+
+    /*Create the bullets the player has.*/
+    private void setupPlayerBullets(int numberOfBullets)
+    {
+        playerBullets = new Bullet[numberOfBullets];
+
+        for (int i = 0; i < playerBullets.length; i++)
+        {
+            playerBullets[i] = new Bullet(m_context.getResources().getDrawable(R.drawable.player_missle),
+                    player.getPos(), new Vector2f(100, 100), levelBounds.top, -1);
+        }
     }
 
     private void setupControls()
@@ -86,130 +268,10 @@ public class GameLoop
     }
 
 
-    int frame = 0; //Increased by 1 every time Update is called.
-
-    /*Update() is called every loop.*/
-    public void Update()
-    {
-        player.translate(5 * movingDir, 0);
-
-        if (levelBounds.isCollidingWithLeft(player.getBoundingRect())
-                || levelBounds.isCollidingWithRight(player.getBoundingRect()))
-        {
-            player.translate(5 * -movingDir, 0);
-        }
-
-        for (int i = 0; i < staticEnemies.length; i++)
-        {
-            staticEnemies[i].moveBetween(levelBounds.left, levelBounds.right);
-        }
-
-        for (int i = 0; i < playerBullets.length; i++)
-        {
-            playerBullets[i].update();
-        }
-
-        if (frame % fireRate == 0)
-        {
-            okayToFire = true;
-        }
-
-        frame++;
-    }
 
 
-    Rect touchRect = new Rect(0, 0, 0, 0);
-    /*Draw() is called every loop and contains a reference to the canvas that needs to be
-    * drawn to.*/
-    public void Draw(Canvas canvas)
-    {
-        canvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR); //Draw background colour.
 
-        controls.draw(canvas);
-
-        player.draw(canvas); //Draw the player.
-
-        /*Draw all of the players bullets if they are in motion.*/
-        for (int i = 0; i < playerBullets.length; i++)
-        {
-            if (playerBullets[i].isActive)
-            {
-                playerBullets[i].draw(canvas);
-            }
-
-        }
-
-        /*Draw all of the static enemies.*/
-        for (int i =0; i < staticEnemies.length; i++)
-        {
-            staticEnemies[i].draw(canvas);
-        }
-
-
-    }
-
-    /*Listen for touch events*/
-    public void screenTouched(MotionEvent event)
-    {
-        int eventAction = event.getActionMasked();
-        int test = event.getActionIndex();
-
-        if (eventAction == MotionEvent.ACTION_DOWN)
-        {
-            fireBullet((int)event.getX(), (int)event.getY());
-        }
-
-        if (eventAction == MotionEvent.ACTION_MOVE)
-        {
-            updatePlayerMovingDir((int)event.getX(), (int)event.getY());
-        }
-
-        if (eventAction == MotionEvent.ACTION_UP)
-        {
-            movingDir = 0;
-        }
-    }
-
-    /*Places enemies in the level. Gets called once when GameLoop is constructed.*/
-    private void setupEnemies(Context context, int numberOfEnemies)
-    {
-        /*Start X at 0 and increase by 40 until m_screenSize.x - 200 is reached. Move along X until
-        * no more space, then move down to the Y.*/
-        /*Start Y at 100 and increase by 100 until 500 is reached.*/
-
-        staticEnemies = new Enemy[numberOfEnemies];
-
-        for (int i = 0; i < staticEnemies.length; i++)
-        {
-            staticEnemies[i] = new Enemy(context.getResources().getDrawable(R.drawable.enemy1_a), new Vector2i(xPlacement, yPlacement), new Vector2i(100, 100));
-
-            if (xPlacement < m_screenSize.x - 200)
-            {
-                xPlacement += 300;
-            }
-            else
-            {
-                xPlacement = 0;
-
-                if (yPlacement < 500)
-                {
-                    yPlacement += 100;
-                }
-            }
-        }
-    }
-
-    /*Create the bullets the player has.*/
-    private void setupPlayerBullets(Context context, int numberOfBullets)
-    {
-        playerBullets = new Bullet[numberOfBullets];
-
-        for (int i = 0; i < playerBullets.length; i++)
-        {
-            playerBullets[i] = new Bullet(context.getResources().getDrawable(R.drawable.player_missle),
-                    player.getPos(), new Vector2i(100, 100), levelBounds.top, -1);
-        }
-    }
+    //----------UPDATE FUNCTIONS----------
 
     /*If the left side of the screen is being touched, set the moving direction
     * to -1, if the right side, set it to 1.*/
@@ -228,10 +290,113 @@ public class GameLoop
         }
     }
 
+    private void updatePlayer(float deltaTime)
+    {
+        //Move the player left or right depending on their movement direction.
+        player.translate((10 * movingDir) * deltaTime, 0);
+
+        //If the player is touch the left or right boundary.
+        if (levelBounds.isCollidingWithLeft(player.getBoundingRect())
+                || levelBounds.isCollidingWithRight(player.getBoundingRect()))
+        {
+            //Move them the other direction by the same amount they moved. (Keeping it at a standstill).
+            player.translate((10 * -movingDir) * deltaTime, 0);
+        }
+    }
+
+    private void updateStaticEnemies(float deltaTime)
+    {
+        /*For every static enemy in the static enemy's vector.
+        * (Loops backwards because elements have the potential to be removed.*/
+        for (int i = staticEnemies.size() - 1; i >= 0; i--)
+        {
+            /*Generate a random number between chanceToFirebullet and 1*/
+            int randomNumber = rand.nextInt(chanceToFireBullet + 1);
+
+            /*Move every enemy between the left and right level boundaries.*/
+            staticEnemies.get(i).moveBetween(levelBounds.left, levelBounds.right, deltaTime);
+
+            //1 in 'chanceToFireBullet' odds of firing the current enemy's bullet.
+            if (randomNumber == 1)
+            {
+                if (!staticEnemyBullets[i].isActive) //If the current enemy's bullet isn't already moving.
+                {
+                    //Fire it downwards from the current enemy's position.
+                    staticEnemyBullets[i].fire(staticEnemies.get(i).getPos());
+                }
+            }
+
+            /*For every bullet the player has. (Occurs for every static enemy)*/
+            for (int j = 0; j < playerBullets.length; j++)
+            {
+                if (playerBullets[j].isActive) //If the current bullet is moving.
+                {
+                    //Has the current bullet collided with the current static enemy?
+                    if (collision.RectInRect(playerBullets[j].getBoundingRect(), staticEnemies.elementAt(i).getBoundingRect()))
+                    {
+                        playerBullets[j].isActive = false; //Disable the bullet that has collided.
+
+                        staticEnemies.get(i).removeLife(); //Remove a life from the enemy that was hit.
+
+                        if (staticEnemies.get(i).isDead()) //If that enemy's lives are <= 0.
+                        {
+                            staticEnemies.removeElementAt(i); //Remove enemy from Vector of static enemies.
+
+                            /*Exit loop as element has been removed from it.*/
+                            j = playerBullets.length;
+                            i = -1;
+
+                            if (staticEnemies.size() <= 0)
+                            {
+                                staticEnemiesIsEmpty = true;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private void updateBullets(float deltaTime)
+    {
+        /*For every bullet the player has.*/
+        for (int i = 0; i < playerBullets.length; i++)
+        {
+            playerBullets[i].update(deltaTime); //Move if active.
+        }
+
+        /*For every static enemy bullet.*/
+        for (int i = 0; i < staticEnemyBullets.length; i++)
+        {
+            staticEnemyBullets[i].update(deltaTime); //Move if active.
+
+            /*If the current bullet is active.*/
+            if (staticEnemyBullets[i].isActive)
+            {
+                /*Is it colliding with the player?*/
+                if (collision.RectInRect(staticEnemyBullets[i].getBoundingRect(), player.getBoundingRect()))
+                {
+                    staticEnemyBullets[i].isActive = false; //Disable the bullet that collided.
+
+                    player.removeLife(); //Remove a life from the player.
+
+                    if (player.isDead()) //If the player's lives are <= 0.
+                    {
+                        endGame(false); //End the game with a loss.
+                    }
+                }
+            }
+        }
+    }
 
 
-    int fireRate = 30; //How many frames between shots.
-    boolean okayToFire = true; //It's okay to fire another bullet.
+
+
+
+    //----------ACTION FUNCTIONS----------
+
+    private int fireRate = 30; //How many frames between shots.
+    private boolean okayToFire = true; //It's okay to fire another bullet.
 
     private void fireBullet(int touchX, int touchY)
     {
@@ -257,4 +422,76 @@ public class GameLoop
             }
         }
     }
+
+    private void newWave()
+    {
+        waveNumber++;
+
+        /*Update number of static enemies, and their lives.*/
+        if (m_numberOfStaticEnemies <= 12)
+        {
+            m_numberOfStaticEnemies += 2;
+
+            if (waveNumber == 5)
+            {
+                m_staticEnemyLives += 1;
+                m_numberOfStaticEnemies -= 6;
+            }
+
+            if (waveNumber == 7)
+            {
+                chanceToFireBullet = 300;
+            }
+        }
+        else
+        {
+            endGame(true); //Can put no more enemies on screen, you win.
+        }
+
+
+
+        staticEnemyPlacement = new Vector2f(0, 100);
+
+        setupEnemies(m_numberOfStaticEnemies, m_staticEnemyLives);
+    }
+
+    private void endGame(boolean gameIsWon)
+    {
+        PreferenceManager.get().gameIsWon = gameIsWon;
+        PreferenceManager.get().wavesCompleted = waveNumber;
+
+        Intent intent = new Intent(m_context, GameEndActivity.class);
+        m_context.startActivity(intent);
+        ((Activity)m_context).finish();
+
+    }
+
+
+
+
+
+    //----------EVENT LISTENER FUNCTIONS----------
+
+    /*Listen for touch events*/
+    public void screenTouched(MotionEvent event)
+    {
+        int eventAction = event.getActionMasked();
+
+        if (eventAction == MotionEvent.ACTION_DOWN)
+        {
+            updatePlayerMovingDir((int)event.getX(), (int)event.getY());
+            fireBullet((int)event.getX(), (int)event.getY());
+        }
+
+        if (eventAction == MotionEvent.ACTION_MOVE)
+        {
+            updatePlayerMovingDir((int)event.getX(), (int)event.getY());
+        }
+
+        if (eventAction == MotionEvent.ACTION_UP)
+        {
+            movingDir = 0;
+        }
+    }
+
 }
