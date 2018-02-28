@@ -5,7 +5,9 @@
     <string name="quit">Quit</string>
     <string name="backToMenu">Back to Main Menu</string>
     <string name="enablesound">Enable Sound</string>
-
+    <string name="paused">Paused</string>
+    <string name="resume">Resume</string>
+    <string name="volume">Volume:</string>
 
 
     <string name="endStateWin">You Win!</string>

@@ -54,7 +54,6 @@ public class Enemy extends DrawableObject
         }
     }
 
-
     public void removeLife()
     {
         lives--;

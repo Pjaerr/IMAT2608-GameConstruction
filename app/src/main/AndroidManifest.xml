@@ -18,10 +18,14 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name="View.MainMenu"/>
-        <activity android:name="View.Options" android:noHistory="true"/>
-        <activity android:name="View.GameActivity"/>
-        <activity android:name="View.GameEndActivity" android:noHistory="true"/>
+        <activity android:name="View.MainMenu" />
+        <activity
+            android:name="View.Options"
+            android:noHistory="true" />
+        <activity android:name="View.GameActivity" />
+        <activity
+            android:name="View.GameEndActivity"
+            android:noHistory="true" />
     </application>
 
 </manifest>

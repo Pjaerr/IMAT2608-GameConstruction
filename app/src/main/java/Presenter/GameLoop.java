@@ -3,13 +3,22 @@ package Presenter;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Point;
 import android.graphics.PorterDuff;
 import android.graphics.Rect;
+import android.graphics.RectF;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
+import android.media.MediaPlayer;
+import android.os.Handler;
+import android.util.Log;
 import android.view.MotionEvent;
+import android.widget.Button;
 
 import java.util.Random;
 import java.util.Vector;
@@ -19,6 +28,7 @@ import Model.Enemy;
 import Model.LevelBoundaries;
 import Model.PreferenceManager;
 import Model.Vector2f;
+import View.GameActivity;
 import View.GameEndActivity;
 import jackson.joshua.imat2608_galaga.R;
 
@@ -76,7 +86,11 @@ class GameLoop
     /*Wave Stuff*/
     private int waveNumber = 1;
 
-
+    /*Sounds*/
+    MediaPlayer playerBlaster;
+    MediaPlayer enemyBlaster;
+    MediaPlayer enemyDeath;
+    MediaPlayer playerLosesLife;
 
     GameLoop(Point screenSize, Context context)
     {
@@ -94,6 +108,34 @@ class GameLoop
 
         setupEnemies(m_numberOfStaticEnemies, m_staticEnemyLives); //Setup the enemies.
         setupPlayerBullets(5); //Give the player 5 bullets.
+
+        if (PreferenceManager.get().soundIsEnabled)
+        {
+            playerBlaster = MediaPlayer.create(m_context, R.raw.player_blaster);
+            enemyBlaster = MediaPlayer.create(m_context, R.raw.enemy_blaster);
+            enemyDeath = MediaPlayer.create(m_context, R.raw.enemy1death);
+            playerLosesLife = MediaPlayer.create(m_context, R.raw.explosion);
+
+            if (playerBlaster != null)
+            {
+                playerBlaster.setVolume(0.0f, PreferenceManager.get().volume);
+            }
+
+            if (enemyBlaster != null)
+            {
+                enemyBlaster.setVolume(0.0f, PreferenceManager.get().volume);
+            }
+
+            if (enemyDeath != null)
+            {
+                enemyDeath.setVolume(0.0f, PreferenceManager.get().volume);
+            }
+
+            if (playerLosesLife != null)
+            {
+                playerLosesLife.setVolume(0.0f, PreferenceManager.get().volume);
+            }
+        }
     }
 
 
@@ -102,9 +144,15 @@ class GameLoop
     void Start()
     {
         setupControls(); //Create the controls on screen.
+
+        background = BitmapFactory.decodeResource(m_context.getResources(), R.drawable.space_background);
     }
 
 
+    Handler handler = new Handler();
+    int count = 0;
+
+    private boolean playerIsDead = false;
 
     private int frame = 0; //Increased by 1 every time Update is called.
 
@@ -116,46 +164,52 @@ class GameLoop
             newWave(); //Launch a new wave.
         }
 
-        /*
-        * Move the player.
-        * Check for collisions with level boundaries.
-        * */
-        updatePlayer(deltaTime);
-
-        if (!staticEnemiesIsEmpty) //If there are still static enemies in the level.
+        if (!playerIsDead)
         {
+
+
             /*
-            * Moves static enemies.
-            * Checks if any of the player's bullets have hit a static enemy.
-            * Controls static enemies shooting their bullets.
+            * Move the player.
+            * Check for collisions with level boundaries.
             * */
-            updateStaticEnemies(deltaTime);
+            updatePlayer(deltaTime);
+
+            if (!staticEnemiesIsEmpty) //If there are still static enemies in the level.
+            {
+                /*
+                * Moves static enemies.
+                * Checks if any of the player's bullets have hit a static enemy.
+                * Controls static enemies shooting their bullets.
+                * */
+                updateStaticEnemies(deltaTime);
+            }
+
+            /*
+            * Moves each bullet if needed.
+            * Checks if a static enemy bullet has hit the player.
+            * */
+            updateBullets(deltaTime);
+
+            /*Only allow the player to fire a bullet everytime a certain
+            * amount of frames has passed.*/
+            if (frame % fireRate == 0)
+            {
+                okayToFire = true;
+            }
+
+            frame++; //Increase the frame count.
         }
-
-        /*
-        * Moves each bullet if needed.
-        * Checks if a static enemy bullet has hit the player.
-        * */
-        updateBullets(deltaTime);
-
-        /*Only allow the player to fire a bullet everytime a certain
-        * amount of frames has passed.*/
-        if (frame % fireRate == 0)
-        {
-            okayToFire = true;
-        }
-
-        frame++; //Increase the frame count.
     }
 
-
-
     private Paint paint = new Paint();
-    /*Draw() is called every loop and contains a reference to the canvas that needs to be
-    * drawn to.*/
+
+    Bitmap background;
+
     void Draw(Canvas canvas)
     {
-        canvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR); //Draw background colour.
+        //canvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR); //Draw background colour.
+
+        canvas.drawBitmap(background, null, new Rect(0, 0, m_screenSize.x, m_screenSize.y), paint);
 
         paint.setColor(Color.WHITE);
         paint.setTextSize(40);
@@ -167,7 +221,7 @@ class GameLoop
 
         player.draw(canvas); //Draw the player.
 
-        /*Draw all of the players bullets if they are in motion.*/
+    /*Draw all of the players bullets if they are in motion.*/
         for (int i = 0; i < playerBullets.length; i++)
         {
             if (playerBullets[i].isActive)
@@ -176,7 +230,7 @@ class GameLoop
             }
         }
 
-        /*Draw all of the static enemy's bullets if they are in motion.*/
+    /*Draw all of the static enemy's bullets if they are in motion.*/
         for (int i = 0; i < staticEnemyBullets.length; i++)
         {
             if (staticEnemyBullets[i].isActive)
@@ -185,13 +239,11 @@ class GameLoop
             }
         }
 
-        /*Draw all of the static enemies.*/
+    /*Draw all of the static enemies.*/
         for (int i =0; i < staticEnemies.size(); i++)
         {
             staticEnemies.elementAt(i).draw(canvas);
         }
-
-
     }
 
 
@@ -268,9 +320,6 @@ class GameLoop
     }
 
 
-
-
-
     //----------UPDATE FUNCTIONS----------
 
     /*If the left side of the screen is being touched, set the moving direction
@@ -323,6 +372,11 @@ class GameLoop
                 {
                     //Fire it downwards from the current enemy's position.
                     staticEnemyBullets[i].fire(staticEnemies.get(i).getPos());
+
+                    if (enemyBlaster != null)
+                    {
+                        enemyBlaster.start();
+                    }
                 }
             }
 
@@ -340,6 +394,7 @@ class GameLoop
 
                         if (staticEnemies.get(i).isDead()) //If that enemy's lives are <= 0.
                         {
+                            enemyDeath.start();
                             staticEnemies.removeElementAt(i); //Remove enemy from Vector of static enemies.
 
                             /*Exit loop as element has been removed from it.*/
@@ -380,6 +435,32 @@ class GameLoop
 
                     player.removeLife(); //Remove a life from the player.
 
+                    playerIsDead = true;
+
+                    handler.postDelayed(new Runnable()
+                    {
+                        public void run()
+                        {
+                            if (count < 2)
+                            {
+                                //Flash player.
+                                player.setActive();
+                                count++;
+                                handler.postDelayed(this, 500);
+                            }
+                            else
+                            {
+                                playerIsDead = false;
+                                count = 0;
+                                handler.removeCallbacks(this);
+                            }
+
+                        }
+                    }, 500);
+
+                    playerLosesLife.start();
+
+
                     if (player.isDead()) //If the player's lives are <= 0.
                     {
                         endGame(false); //End the game with a loss.
@@ -398,6 +479,7 @@ class GameLoop
     private int fireRate = 30; //How many frames between shots.
     private boolean okayToFire = true; //It's okay to fire another bullet.
 
+
     private void fireBullet(int touchX, int touchY)
     {
         touchRect = new Rect(touchX, touchY, touchX + 10, touchY + 10);
@@ -406,6 +488,11 @@ class GameLoop
         {
             if (okayToFire)
             {
+                if (playerBlaster != null)
+                {
+                    playerBlaster.start();
+                }
+
                 for (int i = 0; i < playerBullets.length; i++)
                 {
                 /*Loop through all of the player's bullets until a bullet
@@ -479,6 +566,8 @@ class GameLoop
 
         if (eventAction == MotionEvent.ACTION_DOWN)
         {
+            //Add pause code here that checks first if action up bla bla
+
             updatePlayerMovingDir((int)event.getX(), (int)event.getY());
             fireBullet((int)event.getX(), (int)event.getY());
         }
@@ -490,6 +579,7 @@ class GameLoop
 
         if (eventAction == MotionEvent.ACTION_UP)
         {
+
             movingDir = 0;
         }
     }

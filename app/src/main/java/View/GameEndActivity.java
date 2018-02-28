@@ -1,6 +1,7 @@
 package View;
 
 import android.content.Intent;
+import android.media.MediaPlayer;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
@@ -13,6 +14,8 @@ public class GameEndActivity extends AppCompatActivity
 {
     TextView title; //Reference to the title in the XML.
     TextView wavesCompleted; //Reference to the waves completed in the XML.
+
+    MediaPlayer endSound;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,11 +43,22 @@ public class GameEndActivity extends AppCompatActivity
 
         /*Set the text of waves completed to the number of waves completed.*/
         wavesCompleted.setText(String.format(getResources().getString(R.string.wavesCompleted), PreferenceManager.get().wavesCompleted));
+
+        if (PreferenceManager.get().soundIsEnabled)
+        {
+            endSound = MediaPlayer.create(getApplicationContext(), R.raw.end);
+
+            endSound.setVolume(0.0f, PreferenceManager.get().volume - 0.4f);
+
+            endSound.start();
+        }
+
     }
 
     /*Called via button click, returns to the main menu activity.*/
     public void backToMenu(View view)
     {
+        endSound.stop();
         Intent intent = new Intent(GameEndActivity.this, MainMenu.class);
         startActivity(intent);
         finish();

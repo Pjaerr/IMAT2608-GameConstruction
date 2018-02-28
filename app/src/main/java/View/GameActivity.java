@@ -1,11 +1,13 @@
 package View;
 
-import android.app.ActionBar;
 import android.content.Intent;
 import android.graphics.Point;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.view.View;
+import android.widget.Button;
+import android.widget.FrameLayout;
+import android.widget.LinearLayout;
+import android.widget.TextView;
 
 import Model.PreferenceManager;
 import Presenter.GameView;
@@ -15,7 +17,6 @@ import Presenter.GameView;
 public class GameActivity extends AppCompatActivity
 {
     private GameView gameView; //Reference to the GameView.
-
    @Override
     protected void onCreate(Bundle savedInstanceState)
    {
@@ -24,14 +25,15 @@ public class GameActivity extends AppCompatActivity
 
        super.onCreate(savedInstanceState);
 
-
-
        /*Get the screensize and pass the metrics to Point screenSize.*/
        Point screenSize = new Point();
        this.getWindowManager().getDefaultDisplay().getRealSize(screenSize);
 
-        /*Create the GameActivity View and set it as this Activity's view.*/
+
        gameView = new GameView(this, screenSize);
+
+       /*Create the GameActivity View and set it as this Activity's view.*/
+
        setContentView(gameView);
    }
 
@@ -54,14 +56,8 @@ public class GameActivity extends AppCompatActivity
        gameView.resume(); //Resume the thread the game view is running on.
    }
 
+   public void openPauseMenu()
+   {
 
-
-   /*Should be called when the game has ended. Causing the activity to switch to the
-   * end screen.*/
-    public void goToEndScreen(View view)
-    {
-        Intent intent = new Intent(GameActivity.this, GameEndActivity.class);
-        startActivity(intent);
-        finish();
-    }
+   }
 }

@@ -6,6 +6,7 @@ import android.graphics.Paint;
 import android.graphics.Point;
 import android.graphics.Rect;
 import android.util.Log;
+import android.widget.TextView;
 
 public class Controls
 {
@@ -16,6 +17,7 @@ public class Controls
     Rect fireButton; //Reference to the button used to fire a missle.
     Rect moveLeftButton; //Reference to the button used to move left.
     Rect moveRightButton; //Reference to the button used to move right.
+
 
     public Controls()
     {
@@ -56,7 +58,11 @@ public class Controls
 
         canvas.drawRect((float)moveRightButton.left, (float)moveRightButton.top,
                 (float)moveRightButton.right, (float)moveRightButton.bottom, paint);
+
     }
+
+
+
 
 
     /*Helper functions to check whether the rectangle placed where a touch has occured

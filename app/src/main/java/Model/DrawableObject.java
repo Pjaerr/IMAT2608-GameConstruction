@@ -3,6 +3,7 @@ package Model;
 import android.graphics.Canvas;
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
+import android.os.Handler;
 
 /*The class from which all objects that wish to have a sprite that
 * is drawn to, and movable around, the canvas need to inherit from.
@@ -24,6 +25,13 @@ public class DrawableObject
 
         /*Setup the bounding rectangle of this object.*/
         m_sprite.setBounds((int)m_pos.x, (int)m_pos.y, (int)(m_pos.x + m_scale.x), (int)(m_pos.y + m_scale.y));
+    }
+
+    private boolean isHidden = false;
+
+    public void setActive()
+    {
+        isHidden = !isHidden;
     }
 
     /*Change the Drawable that this object's sprite references.*/
@@ -54,7 +62,7 @@ public class DrawableObject
     /*Draw this object's sprite on the given canvas.*/
     public void draw(Canvas canvas)
     {
-        m_sprite.draw(canvas);
+        if (!isHidden){m_sprite.draw(canvas);}
     }
 
     public Rect getBoundingRect()

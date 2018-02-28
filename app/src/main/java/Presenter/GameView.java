@@ -78,8 +78,6 @@ public class GameView extends SurfaceView implements Runnable
                 Log.d("Thread", "Tried to put thread to sleep");
             }
         }
-
-
     }
 
     public void pause()

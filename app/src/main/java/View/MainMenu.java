@@ -1,6 +1,7 @@
 package View;
 
 import android.content.Intent;
+import android.media.MediaPlayer;
 import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -21,9 +22,12 @@ public class MainMenu extends AppCompatActivity
 
     private Handler handler = new Handler();
 
+    MediaPlayer startSound;
+
     /*Starts the game when the Start button is clicked.*/
     public void startGame(View view)
     {
+        startSound.stop();
         Intent intent = new Intent(MainMenu.this, GameActivity.class);
         startActivity(intent);
         finish();
@@ -77,13 +81,30 @@ public class MainMenu extends AppCompatActivity
         m_width = m_displayMetrics.widthPixels;
         shipSprite = findViewById(R.id.ship);
 
+        if (PreferenceManager.get().soundIsEnabled)
+        {
+            startSound = MediaPlayer.create(getApplicationContext(), R.raw.beginning);
+            startSound.setVolume(0.0f, PreferenceManager.get().volume);
+        }
+
         handler.postDelayed(new Runnable()
         {
             public void run()
             {
                 animateShipSprite();
                 handler.postDelayed(this, 1);
+
+
             }
         }, 1);
+
+        if (PreferenceManager.get().soundIsEnabled)
+        {
+            if (!startSound.isPlaying() && startSound != null)
+            {
+                startSound.start();
+            }
+        }
+
     }
 }
