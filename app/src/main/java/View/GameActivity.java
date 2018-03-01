@@ -25,16 +25,17 @@ public class GameActivity extends AppCompatActivity
 
        super.onCreate(savedInstanceState);
 
-       /*Get the screensize and pass the metrics to Point screenSize.*/
-       Point screenSize = new Point();
-       this.getWindowManager().getDefaultDisplay().getRealSize(screenSize);
+
+           /*Get the screensize and pass the metrics to Point screenSize.*/
+           Point screenSize = new Point();
+           this.getWindowManager().getDefaultDisplay().getRealSize(screenSize);
 
 
-       gameView = new GameView(this, screenSize);
+           gameView = new GameView(this, screenSize);
 
        /*Create the GameActivity View and set it as this Activity's view.*/
-
        setContentView(gameView);
+
    }
 
 

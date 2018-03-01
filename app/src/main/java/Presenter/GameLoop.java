@@ -3,6 +3,7 @@ package Presenter;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
@@ -12,6 +13,7 @@ import android.graphics.Point;
 import android.graphics.PorterDuff;
 import android.graphics.Rect;
 import android.graphics.RectF;
+import android.graphics.drawable.AnimationDrawable;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.media.MediaPlayer;
@@ -159,6 +161,11 @@ class GameLoop
     /*Update() is called every loop.*/
     void Update(float deltaTime)
     {
+        for (int i = 0; i < staticEnemies.size(); i++)
+        {
+            staticEnemies.elementAt(i).startAnimation("move_anim",500);
+        }
+
         if (staticEnemiesIsEmpty) //Can change to check for dynamic enemies in the future too.
         {
             newWave(); //Launch a new wave.
@@ -207,8 +214,6 @@ class GameLoop
 
     void Draw(Canvas canvas)
     {
-        //canvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR); //Draw background colour.
-
         canvas.drawBitmap(background, null, new Rect(0, 0, m_screenSize.x, m_screenSize.y), paint);
 
         paint.setColor(Color.WHITE);
@@ -265,17 +270,25 @@ class GameLoop
 
         for (int i = 0; i < numberOfEnemies; i++)
         {
-            staticEnemies.addElement(new Enemy(m_context.getResources().getDrawable(R.drawable.enemy1_a),
-                    new Vector2f(staticEnemyPlacement.x, staticEnemyPlacement.y), new Vector2f(100, 100)));
+            Resources res = m_context.getResources();
+
+            Bitmap bmp = BitmapFactory.decodeResource(res, R.drawable.enemy1_moveanim);
+
+            Vector2f pos = new Vector2f (staticEnemyPlacement.x, staticEnemyPlacement.y);
+            Vector2f scale = new Vector2f(100, 100);
+
+            Enemy nextEnemy = new Enemy(res, bmp, 2, 1, "move_anim", pos, scale);
+
+            staticEnemies.addElement(nextEnemy);
 
             staticEnemyBullets[i] = new Bullet(m_context.getResources().getDrawable(R.drawable.enemy_missle),
                     new Vector2f(staticEnemyPlacement.x, staticEnemyPlacement.y), new Vector2f(100, 100), levelBounds.bottom, 1);
 
             staticEnemies.get(i).setNumberOfLives(numberOfLives);
 
-            if (staticEnemyPlacement.x < m_screenSize.x - 200)
+            if (staticEnemyPlacement.x < m_screenSize.x - 400)
             {
-                staticEnemyPlacement.x += 300;
+                staticEnemyPlacement.x += 400;
             }
             else
             {
@@ -298,6 +311,8 @@ class GameLoop
         {
             playerBullets[i] = new Bullet(m_context.getResources().getDrawable(R.drawable.player_missle),
                     player.getPos(), new Vector2f(100, 100), levelBounds.top, -1);
+
+            playerBullets[i].setMovementSpeed(35);
         }
     }
 
@@ -394,7 +409,11 @@ class GameLoop
 
                         if (staticEnemies.get(i).isDead()) //If that enemy's lives are <= 0.
                         {
-                            enemyDeath.start();
+                            if (enemyDeath != null)
+                            {
+                                enemyDeath.start();
+                            }
+
                             staticEnemies.removeElementAt(i); //Remove enemy from Vector of static enemies.
 
                             /*Exit loop as element has been removed from it.*/
@@ -458,7 +477,11 @@ class GameLoop
                         }
                     }, 500);
 
-                    playerLosesLife.start();
+                    if (playerLosesLife != null)
+                    {
+                        playerLosesLife.start();
+                    }
+
 
 
                     if (player.isDead()) //If the player's lives are <= 0.

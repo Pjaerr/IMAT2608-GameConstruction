@@ -1,6 +1,9 @@
 package Model;
 
+import android.content.res.Resources;
+import android.graphics.Bitmap;
 import android.graphics.Rect;
+import android.graphics.drawable.AnimationDrawable;
 import android.graphics.drawable.Drawable;
 
 import Presenter.Collision;
@@ -17,9 +20,9 @@ public class Enemy extends DrawableObject
 
     private Collision collision; //Used to check for collisions.
 
-    public Enemy(Drawable image, Vector2f position, Vector2f scale)
+    public Enemy(Resources res, Bitmap bmp, int columns, int rows, String animationName, Vector2f position, Vector2f scale)
     {
-        super(image, position, scale);
+        super(res, bmp, columns, rows, animationName, position, scale);
 
         collision = new Collision();
     }

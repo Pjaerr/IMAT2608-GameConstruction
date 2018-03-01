@@ -1,9 +1,24 @@
 package Model;
 
+import android.content.res.Resources;
+import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Rect;
+import android.graphics.drawable.AnimationDrawable;
+import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Handler;
+import android.os.Looper;
+import android.os.SystemClock;
+import android.util.Log;
+import android.view.animation.Animation;
+import android.widget.ImageView;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Vector;
+
+import jackson.joshua.imat2608_galaga.R;
 
 /*The class from which all objects that wish to have a sprite that
 * is drawn to, and movable around, the canvas need to inherit from.
@@ -17,10 +32,81 @@ public class DrawableObject
 
     private Drawable m_sprite; //Reference to the image passed when this object is constructed.
 
+    private int numberOfAnimations = 0;
+    private Vector<Drawable[]> animations;
+    private Map animationIndices;
+    private int currentAnimationIndex = 0;
+
+    private int currentFrame = 0;
+
+    public boolean isAnimated = false;
+
+    Resources resources;
+
+    public DrawableObject (Resources res, Bitmap bmp, int columns, int rows, String animationName, Vector2f position, Vector2f scale)
+    {
+        resources = res;
+
+        isAnimated = true;
+
+        m_pos = position;
+        m_scale = scale;
+
+        animations = new Vector<Drawable[]>(1);
+        animationIndices = new HashMap();
+
+        createAnimation(bmp, columns, rows, animationName);
+    }
+
+
+    public void createAnimation(Bitmap spritesheet, int columns, int rows, String animationName)
+    {
+        Drawable[] anim = new Drawable[columns * rows]; //Number of sprites is cols x rows.
+
+        int width = spritesheet.getWidth() / columns; //The width of a sprite is the width of the entire bitmap / the number of columns.
+        int height = spritesheet.getHeight() / rows; //The height of a sprite is the height of the entire bitmap / the number of rows.
+
+        int currentColumn = 0;
+        int currentRow = 0;
+
+        /*For every sprite in m_sprites.*/
+        for (int i = 0; i < anim.length; i++)
+        {
+            if (currentColumn >= columns) //If we've reached the end of the row.
+            {
+                currentColumn = 0; //Start the beginning of the columns.
+                currentRow++; //Move to the next row.
+            }
+
+            if (currentRow >= rows)
+            {
+                currentRow = 0;
+            }
+
+
+            int x = currentColumn * width;
+            int y = currentRow * height;
+
+            anim[i] = new BitmapDrawable(resources, Bitmap.createBitmap(spritesheet, x, y, width, height));
+            anim[i].setBounds((int)m_pos.x, (int)m_pos.y, (int)(m_pos.x + m_scale.x), (int)(m_pos.y + m_scale.y));
+
+            currentColumn++;
+        }
+
+        animations.add(anim); //Add the created animations to the collection of animations.
+        animationIndices.put(animationName, numberOfAnimations); //Store the given name with the index of the animation.
+
+
+        numberOfAnimations++;
+    }
+
+
+
     public DrawableObject (Drawable image, Vector2f position, Vector2f scale)
     {
         m_pos = position;
         m_scale = scale;
+
         m_sprite = image;
 
         /*Setup the bounding rectangle of this object.*/
@@ -35,8 +121,16 @@ public class DrawableObject
     }
 
     /*Change the Drawable that this object's sprite references.*/
-    public void setTexture(Drawable image) {
+    public void setTexture(Drawable image)
+    {
         m_sprite = image;
+    }
+
+    public void setTexture(Drawable image, int index)
+    {
+        if (index < animations.elementAt(currentAnimationIndex).length && index >= 0) {
+            animations.elementAt(currentAnimationIndex)[index] = image;
+        }
     }
 
     /*Set this object's position to its current positon plus x and y.*/
@@ -49,29 +143,98 @@ public class DrawableObject
     public void setPosition(Vector2f position)
     {
         m_pos = position;
-        m_sprite.setBounds((int)m_pos.x, (int)m_pos.y, (int)(m_pos.x + m_scale.x), (int)(m_pos.y + m_scale.y));
+
+        if (isAnimated)
+        {
+            for (int i = 0; i < animations.elementAt(currentAnimationIndex).length; i++)
+            {
+                animations.elementAt(currentAnimationIndex)[i].setBounds((int)m_pos.x, (int)m_pos.y, (int)(m_pos.x + m_scale.x), (int)(m_pos.y + m_scale.y));
+            }
+        }
+        else
+        {
+            m_sprite.setBounds((int)m_pos.x, (int)m_pos.y, (int)(m_pos.x + m_scale.x), (int)(m_pos.y + m_scale.y));
+        }
+
     }
 
     /*Set the width and height of this objects bounding rectangle.*/
     public void setScale(Vector2f scale)
     {
         m_scale = scale;
-        m_sprite.setBounds((int)m_pos.x, (int)m_pos.y, (int)(m_pos.x + m_scale.x), (int)(m_pos.y + m_scale.y));
+
+        if (isAnimated)
+        {
+            for (int i = 0; i < animations.elementAt(currentAnimationIndex).length; i++)
+            {
+                animations.elementAt(currentAnimationIndex)[i].setBounds((int)m_pos.x, (int)m_pos.y, (int)(m_pos.x + m_scale.x), (int)(m_pos.y + m_scale.y));
+            }
+        }
+        else
+        {
+            m_sprite.setBounds((int)m_pos.x, (int)m_pos.y, (int)(m_pos.x + m_scale.x), (int)(m_pos.y + m_scale.y));
+        }
     }
 
     /*Draw this object's sprite on the given canvas.*/
     public void draw(Canvas canvas)
     {
-        if (!isHidden){m_sprite.draw(canvas);}
+        if (!isHidden)
+        {
+            if (isAnimated)
+            {
+                animations.elementAt(currentAnimationIndex)[currentFrame].draw(canvas);
+            }
+            else
+            {
+                m_sprite.draw(canvas);
+            }
+        }
     }
 
     public Rect getBoundingRect()
     {
-        return m_sprite.getBounds();
+        if (isAnimated)
+        {
+            return animations.elementAt(currentAnimationIndex)[currentFrame].getBounds();
+        }
+        else
+        {
+            return m_sprite.getBounds();
+        }
     }
 
     public Vector2f getPos()
     {
         return m_pos;
+    }
+
+
+    long previousTime = System.currentTimeMillis();
+
+    public void startAnimation(String animName, final long frameTimeInMs)
+    {
+        if (!animationIndices.containsKey(animName))
+        {
+            throw new IllegalArgumentException(animName + " is not a valid animation name.");
+        }
+
+        currentAnimationIndex = (int)animationIndices.get(animName);
+
+        long currentTime = System.currentTimeMillis();
+
+        if (currentTime - previousTime >= frameTimeInMs)
+        {
+            if (currentFrame < animations.elementAt(currentAnimationIndex).length - 1)
+            {
+                currentFrame++;
+            }
+            else
+            {
+                currentFrame = 0;
+            }
+
+            previousTime = currentTime;
+        }
     }
 }

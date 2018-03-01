@@ -61,4 +61,9 @@ public class Bullet extends DrawableObject
             isActive = true; //Show the bullet and start moving it.
         }
     }
+
+    public void setMovementSpeed(int newMovementSpeed)
+    {
+        movementSpeed = newMovementSpeed;
+    }
 }
