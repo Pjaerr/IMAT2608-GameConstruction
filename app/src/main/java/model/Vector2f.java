@@ -1,4 +1,4 @@
-package Model;
+package model;
 
 /** Utility Class for storing 2 values together.*/
 public class Vector2f

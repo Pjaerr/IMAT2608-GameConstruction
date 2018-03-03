@@ -1,6 +1,5 @@
-package Model;
+package model;
 
-import android.graphics.Canvas;
 import android.graphics.drawable.Drawable;
 
 /*The DrawableObject representing the player ship that sits at the bottom

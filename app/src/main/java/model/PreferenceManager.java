@@ -1,4 +1,4 @@
-package Model;
+package model;
 
 import android.view.View;
 
@@ -15,7 +15,9 @@ public class PreferenceManager
 
     public int wavesCompleted = 0; //Used by GameEndActivity to tailor the end screen.
 
-    public float volume = 0.3f;
+    public int enemiesKilled = 0;
+
+    public float volume = 0.1f;
 
     //Flags to set the to a full screen without any task bar.
     public int mUIFlags = View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN

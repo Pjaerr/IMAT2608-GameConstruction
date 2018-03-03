@@ -5,7 +5,7 @@
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
     android:background="@color/defaultBackgroundColour"
-    tools:context="jackson.joshua.imat2608_galaga.View.GameEnd">
+    tools:context="jackson.joshua.imat2608_galaga.View.GameEndActivity">
 
     <TextView
         android:id="@+id/title"
@@ -33,11 +33,27 @@
         android:fontFamily="@font/arcade"
         android:text="@string/wavesCompleted"
         android:textColor="#fff"
-        android:textSize="20dp"
+        android:textSize="20sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.529"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/title" />
+
+    <TextView
+        android:id="@+id/enemiesKilled"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="8dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="52dp"
+        android:fontFamily="@font/arcade"
+        android:text="@string/enemiesKilled"
+        android:textColor="#fff"
+        android:textSize="20sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.529"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/waves" />
 
     <Button
         android:id="@+id/backToMenu"
@@ -52,6 +68,6 @@
         android:onClick="backToMenu"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/waves" />
+        app:layout_constraintTop_toBottomOf="@+id/enemiesKilled" />
 
 </android.support.constraint.ConstraintLayout>

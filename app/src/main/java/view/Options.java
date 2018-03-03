@@ -1,13 +1,12 @@
-package View;
+package view;
 
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 import android.widget.CheckBox;
 import android.widget.SeekBar;
 
-import Model.PreferenceManager;
+import model.PreferenceManager;
 import jackson.joshua.imat2608_galaga.R;
 
 public class Options extends AppCompatActivity

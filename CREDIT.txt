@@ -1,0 +1,1 @@
+All assets taken from jsvana at https://github.com/jsvana/galaga/tree/master/assets.

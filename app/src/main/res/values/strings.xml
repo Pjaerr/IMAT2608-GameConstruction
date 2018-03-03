@@ -13,4 +13,5 @@
     <string name="endStateWin">You Win!</string>
     <string name="endStateLose">You Lose!</string>
     <string name="wavesCompleted">Waves Completed: %1$d</string>
+    <string name="enemiesKilled">Enemies Killed: %1$d</string>
 </resources>

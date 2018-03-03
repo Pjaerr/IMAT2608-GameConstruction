@@ -1,12 +1,10 @@
-package Model;
+package model;
 
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.Rect;
-import android.graphics.drawable.AnimationDrawable;
-import android.graphics.drawable.Drawable;
 
-import Presenter.Collision;
+import presenter.Collision;
 
 public class Enemy extends DrawableObject
 {

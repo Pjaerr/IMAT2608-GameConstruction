@@ -1,9 +1,9 @@
-package Model;
+package model;
 
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
 
-import Presenter.Collision;
+import presenter.Collision;
 
 public class Bullet extends DrawableObject
 {

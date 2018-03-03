@@ -1,4 +1,4 @@
-package Model;
+package model;
 
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -6,7 +6,7 @@ import android.graphics.Paint;
 import android.graphics.Point;
 import android.graphics.Rect;
 
-import Presenter.Collision;
+import presenter.Collision;
 
 /*The class holding the level boundaries. The level boundaries are
 * universal and clogged up the GameLoop class, so they are extracted out

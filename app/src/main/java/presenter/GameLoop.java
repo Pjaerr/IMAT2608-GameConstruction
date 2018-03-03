@@ -1,4 +1,4 @@
-package Presenter;
+package presenter;
 
 import android.app.Activity;
 import android.content.Context;
@@ -10,31 +10,25 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Point;
-import android.graphics.PorterDuff;
 import android.graphics.Rect;
-import android.graphics.RectF;
-import android.graphics.drawable.AnimationDrawable;
-import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.media.MediaPlayer;
 import android.os.Handler;
-import android.util.Log;
 import android.view.MotionEvent;
-import android.widget.Button;
 
 import java.util.Random;
 import java.util.Vector;
 
-import Model.Bullet;
-import Model.Enemy;
-import Model.LevelBoundaries;
-import Model.PreferenceManager;
-import Model.Vector2f;
-import View.GameActivity;
-import View.GameEndActivity;
+import model.Bullet;
+import model.Enemy;
+import model.LevelBoundaries;
+import model.PreferenceManager;
+import model.Vector2f;
+import view.GameActivity;
+import view.GameEndActivity;
 import jackson.joshua.imat2608_galaga.R;
 
-import Model.Player;
+import model.Player;
 
 /*The class that controls what exactly happens during each game loop but the
 * workings of the game loop are abstracted away.*/
@@ -73,7 +67,6 @@ class GameLoop
     private int m_staticEnemyLives = 1;
 
 
-
     /*Player's Bullets*/
     private Bullet[] playerBullets;
 
@@ -84,15 +77,21 @@ class GameLoop
     private int chanceToFireBullet = 500; //The chance an enemy fires a bullet in any given frame. 1 in chanceToFireBullet.
 
 
-
-    /*Wave Stuff*/
+    /*Score Stuff*/
     private int waveNumber = 1;
+    private int enemiesKilled = 0;
+
 
     /*Sounds*/
+
     MediaPlayer playerBlaster;
     MediaPlayer enemyBlaster;
     MediaPlayer enemyDeath;
     MediaPlayer playerLosesLife;
+
+    /*Canvas Drawing*/
+    private Paint paint = new Paint();
+    Bitmap background;
 
     GameLoop(Point screenSize, Context context)
     {
@@ -140,8 +139,6 @@ class GameLoop
         }
     }
 
-
-
     /*Start() is called once before any other gameloop functions.*/
     void Start()
     {
@@ -163,7 +160,7 @@ class GameLoop
     {
         for (int i = 0; i < staticEnemies.size(); i++)
         {
-            staticEnemies.elementAt(i).startAnimation("move_anim",500);
+            staticEnemies.elementAt(i).startAnimation("move_anim",500, true);
         }
 
         if (staticEnemiesIsEmpty) //Can change to check for dynamic enemies in the future too.
@@ -208,9 +205,7 @@ class GameLoop
         }
     }
 
-    private Paint paint = new Paint();
 
-    Bitmap background;
 
     void Draw(Canvas canvas)
     {
@@ -272,12 +267,13 @@ class GameLoop
         {
             Resources res = m_context.getResources();
 
-            Bitmap bmp = BitmapFactory.decodeResource(res, R.drawable.enemy1_moveanim);
+            Bitmap moveAnimBmp = BitmapFactory.decodeResource(res, R.drawable.enemy1_moveanim);
 
             Vector2f pos = new Vector2f (staticEnemyPlacement.x, staticEnemyPlacement.y);
             Vector2f scale = new Vector2f(100, 100);
 
-            Enemy nextEnemy = new Enemy(res, bmp, 2, 1, "move_anim", pos, scale);
+            Enemy nextEnemy = new Enemy(res, moveAnimBmp, 2, 1, "move_anim", pos, scale);
+
 
             staticEnemies.addElement(nextEnemy);
 
@@ -320,18 +316,42 @@ class GameLoop
     {
         controls = new Controls();
 
-        Rect moveLeftButton = new Rect(-20, ((m_screenSize.y - m_screenSize.y / 3)),
+        /*Setup Move Left Button*/
+        Rect leftButtonTouchArea = new Rect(-20, ((m_screenSize.y - m_screenSize.y / 3)),
                 -20 + m_screenSize.x / 2 - 20, ((m_screenSize.y - m_screenSize.y / 3)) + m_screenSize.y);
+        Drawable leftButtonImage = m_context.getResources().getDrawable(R.drawable.arrow_left);
+        Vector2f leftButtonPos = new Vector2f(-20, m_screenSize.y - m_screenSize.y / 3);
+        Vector2f leftButtonScale = new Vector2f((m_screenSize.x / 2 - 20) - leftButtonPos.x, m_screenSize.y - leftButtonPos.y);
 
-        Rect moveRightButton = new Rect(m_screenSize.x / 2 + 20, ((m_screenSize.y - m_screenSize.y / 3)),
+        controls.setupMoveLeftButton(leftButtonImage, leftButtonPos, leftButtonScale, leftButtonTouchArea);
+
+        /*Setup Move Right Button*/
+        Rect rightButtonTouchArea = new Rect(m_screenSize.x / 2 + 20, ((m_screenSize.y - m_screenSize.y / 3)),
                 (m_screenSize.x / 2  + 20) + m_screenSize.x, ((m_screenSize.y - m_screenSize.y / 3) + m_screenSize.y));
+        Drawable rightButtonImage = m_context.getResources().getDrawable(R.drawable.arrow_right);
+        Vector2f rightButtonPos = new Vector2f(m_screenSize.x / 2 + 20, m_screenSize.y - m_screenSize.y / 3);
+        Vector2f rightButtonScale = new Vector2f(m_screenSize.x - rightButtonPos.x, m_screenSize.y - rightButtonPos.y);
 
-        Rect fireButton = new Rect(0, m_screenSize.y / 2, 400,
+        controls.setupMoveRightButton(rightButtonImage, rightButtonPos, rightButtonScale, rightButtonTouchArea);
+
+        /*Setup Fire Button*/
+        Rect fireButtonTouchArea = new Rect(0, m_screenSize.y / 2, 400,
                 m_screenSize.y / 2 + 310);
+        Drawable fireButtonImage = m_context.getResources().getDrawable(R.drawable.target);
+        Vector2f fireButtonPos = new Vector2f(0, m_screenSize.y / 2);
+        Vector2f fireButtonScale = new Vector2f(400, 400);
 
-        controls.setupMoveLeftButton(moveLeftButton);
-        controls.setupMoveRightButton(moveRightButton);
-        controls.setupFireButton(fireButton);
+        controls.setupFireButton(fireButtonImage, fireButtonPos, fireButtonScale, fireButtonTouchArea);
+
+        /*Setup Pause Button*/
+
+        Rect pauseButtonTouchArea = new Rect(m_screenSize.x / 2 + 20, 0,
+                (m_screenSize.x / 2  + 20) + m_screenSize.x, m_screenSize.y / 3);
+        Drawable pauseButtonImage = m_context.getResources().getDrawable(R.drawable.pause);
+        Vector2f pauseButtonPos = new Vector2f(m_screenSize.x / 2 + m_screenSize.x / 3, 0);
+        Vector2f pauseButtonScale = new Vector2f(100, 100);
+
+        controls.setupPauseButton(pauseButtonImage, pauseButtonPos, pauseButtonScale, pauseButtonTouchArea);
     }
 
 
@@ -342,6 +362,12 @@ class GameLoop
     private void updatePlayerMovingDir(int touchX, int touchY)
     {
         touchRect = new Rect(touchX, touchY, touchX + 10, touchY + 10);
+
+        //Pause game if pause button is touched
+        if (controls.isTouchingPauseButton(touchRect))
+        {
+            ((GameActivity)m_context).pauseGame();
+        }
 
        if (controls.isTouchingMoveRightButton(touchRect))
        {
@@ -409,12 +435,15 @@ class GameLoop
 
                         if (staticEnemies.get(i).isDead()) //If that enemy's lives are <= 0.
                         {
+                            enemiesKilled++;
+
                             if (enemyDeath != null)
                             {
                                 enemyDeath.start();
                             }
 
                             staticEnemies.removeElementAt(i); //Remove enemy from Vector of static enemies.
+
 
                             /*Exit loop as element has been removed from it.*/
                             j = playerBullets.length;
@@ -505,8 +534,6 @@ class GameLoop
 
     private void fireBullet(int touchX, int touchY)
     {
-        touchRect = new Rect(touchX, touchY, touchX + 10, touchY + 10);
-
         if (controls.isTouchingFireButton(touchRect))
         {
             if (okayToFire)
@@ -569,11 +596,11 @@ class GameLoop
     {
         PreferenceManager.get().gameIsWon = gameIsWon;
         PreferenceManager.get().wavesCompleted = waveNumber;
+        PreferenceManager.get().enemiesKilled = enemiesKilled;
 
         Intent intent = new Intent(m_context, GameEndActivity.class);
         m_context.startActivity(intent);
         ((Activity)m_context).finish();
-
     }
 
 
@@ -589,8 +616,6 @@ class GameLoop
 
         if (eventAction == MotionEvent.ACTION_DOWN)
         {
-            //Add pause code here that checks first if action up bla bla
-
             updatePlayerMovingDir((int)event.getX(), (int)event.getY());
             fireBullet((int)event.getX(), (int)event.getY());
         }
@@ -602,7 +627,6 @@ class GameLoop
 
         if (eventAction == MotionEvent.ACTION_UP)
         {
-
             movingDir = 0;
         }
     }

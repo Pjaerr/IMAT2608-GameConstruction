@@ -1,4 +1,4 @@
-package View;
+package view;
 
 import android.content.Intent;
 import android.media.MediaPlayer;
@@ -9,7 +9,7 @@ import android.util.DisplayMetrics;
 import android.view.View;
 import android.widget.ImageView;
 
-import Model.PreferenceManager;
+import model.PreferenceManager;
 import jackson.joshua.imat2608_galaga.R;
 
 

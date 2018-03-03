@@ -1,4 +1,4 @@
-package Presenter;
+package presenter;
 
 import android.graphics.Rect;
 

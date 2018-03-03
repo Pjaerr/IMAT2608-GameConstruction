@@ -1,11 +1,11 @@
-package View;
+package view;
 
 import android.content.Intent;
 import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 
-import Model.PreferenceManager;
+import model.PreferenceManager;
 import jackson.joshua.imat2608_galaga.R;
 
 public class Splashscreen extends AppCompatActivity {

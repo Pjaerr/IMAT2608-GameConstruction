@@ -1,4 +1,4 @@
-package View;
+package view;
 
 import android.content.Intent;
 import android.media.MediaPlayer;
@@ -7,13 +7,14 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.TextView;
 
-import Model.PreferenceManager;
+import model.PreferenceManager;
 import jackson.joshua.imat2608_galaga.R;
 
 public class GameEndActivity extends AppCompatActivity
 {
     TextView title; //Reference to the title in the XML.
     TextView wavesCompleted; //Reference to the waves completed in the XML.
+    TextView enemiesKilled;
 
     MediaPlayer endSound;
 
@@ -25,8 +26,9 @@ public class GameEndActivity extends AppCompatActivity
         /*Setup immersive fullscreen.*/
         getWindow().getDecorView().setSystemUiVisibility(PreferenceManager.get().mUIFlags);
 
-       title = findViewById(R.id.title); //Store a reference to the title.
-       wavesCompleted = findViewById(R.id.waves); //Store a reference to the waves completed text.
+        title = findViewById(R.id.title); //Store a reference to the title.
+        wavesCompleted = findViewById(R.id.waves); //Store a reference to the waves completed text.
+        enemiesKilled = findViewById(R.id.enemiesKilled);
 
         /*When activity is loaded, check to see if the game was won. If it was, set the text and colour
         * of the title text accordingly.*/
@@ -43,6 +45,7 @@ public class GameEndActivity extends AppCompatActivity
 
         /*Set the text of waves completed to the number of waves completed.*/
         wavesCompleted.setText(String.format(getResources().getString(R.string.wavesCompleted), PreferenceManager.get().wavesCompleted));
+        enemiesKilled.setText(String.format(getResources().getString(R.string.enemiesKilled), PreferenceManager.get().enemiesKilled));
 
         if (PreferenceManager.get().soundIsEnabled)
         {

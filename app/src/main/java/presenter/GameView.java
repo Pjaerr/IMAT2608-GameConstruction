@@ -1,7 +1,6 @@
-package Presenter;
+package presenter;
 
 import android.content.Context;
-import android.content.Intent;
 import android.graphics.Canvas;
 import android.graphics.Point;
 import android.os.Process;
@@ -9,9 +8,6 @@ import android.util.Log;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
-import android.view.Window;
-
-import View.GameEndActivity;
 
 /*This is the class that initiates the game loop on a seperate thread and then
 * continously calls the functions found within the GameLoop class. Acting as the
@@ -37,14 +33,16 @@ public class GameView extends SurfaceView implements Runnable
         gameLoop.Start(); //Start the game loop.
     }
 
-    private float deltaTime = 0;
 
-    long previousTime = System.nanoTime();
-    final int FPS = 60;
-    final long OPTIMAL_TIME = 1000000000 / FPS; //Optimal time is 60 frames every second.
 
     public void run()
     {
+        float deltaTime = 0;
+
+        long previousTime = System.nanoTime();
+        final int FPS = 60;
+        final long OPTIMAL_TIME = 1000000000 / FPS; //Optimal time is 60 frames every second.
+
         /*This thread should run in the background.*/
         android.os.Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
 
@@ -82,21 +80,23 @@ public class GameView extends SurfaceView implements Runnable
 
     public void pause()
     {
-        isPaused = true;
-
-        while(true)
+        if (!isPaused)
         {
-            try{
-                m_gameLogic.join();
-            }
-            catch(InterruptedException e)
-            {
-                e.printStackTrace();
-            }
-            break;
-        }
+            isPaused = true;
 
-        m_gameLogic = null;
+            while(true)
+            {
+                try{
+                    m_gameLogic.join();
+                }
+                catch(InterruptedException e) {
+                    e.printStackTrace();
+                }
+                break;
+            }
+
+            m_gameLogic = null;
+        }
     }
 
     public void resume()

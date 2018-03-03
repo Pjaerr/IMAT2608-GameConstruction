@@ -10,7 +10,7 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <activity
-            android:name="View.Splashscreen"
+            android:name="view.Splashscreen"
             android:label="@string/app_name">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -18,13 +18,13 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name="View.MainMenu" />
+        <activity android:name="view.MainMenu" />
         <activity
-            android:name="View.Options"
+            android:name="view.Options"
             android:noHistory="true" />
-        <activity android:name="View.GameActivity" />
+        <activity android:name="view.GameActivity" />
         <activity
-            android:name="View.GameEndActivity"
+            android:name="view.GameEndActivity"
             android:noHistory="true" />
     </application>
 

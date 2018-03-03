@@ -1,24 +1,15 @@
-package Model;
+package model;
 
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Rect;
-import android.graphics.drawable.AnimationDrawable;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
-import android.os.Handler;
-import android.os.Looper;
-import android.os.SystemClock;
-import android.util.Log;
-import android.view.animation.Animation;
-import android.widget.ImageView;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Vector;
-
-import jackson.joshua.imat2608_galaga.R;
 
 /*The class from which all objects that wish to have a sprite that
 * is drawn to, and movable around, the canvas need to inherit from.
@@ -176,6 +167,19 @@ public class DrawableObject
         }
     }
 
+    public void setAlpha(int alpha)
+    {
+        if (isAnimated)
+        {
+            animations.elementAt(currentAnimationIndex)[currentFrame].setAlpha(alpha);
+        }
+        else
+        {
+            m_sprite.setAlpha(alpha);
+        }
+
+    }
+
     /*Draw this object's sprite on the given canvas.*/
     public void draw(Canvas canvas)
     {
@@ -211,30 +215,37 @@ public class DrawableObject
 
 
     long previousTime = System.currentTimeMillis();
+    public boolean animationIsCompleted = false;
 
-    public void startAnimation(String animName, final long frameTimeInMs)
+    public void startAnimation(String animName, final long frameTimeInMs, boolean shouldLoop)
     {
         if (!animationIndices.containsKey(animName))
         {
             throw new IllegalArgumentException(animName + " is not a valid animation name.");
         }
 
-        currentAnimationIndex = (int)animationIndices.get(animName);
-
-        long currentTime = System.currentTimeMillis();
-
-        if (currentTime - previousTime >= frameTimeInMs)
+        if (!animationIsCompleted || animationIsCompleted && shouldLoop)
         {
-            if (currentFrame < animations.elementAt(currentAnimationIndex).length - 1)
-            {
-                currentFrame++;
-            }
-            else
-            {
-                currentFrame = 0;
-            }
+            animationIsCompleted = false;
+            currentAnimationIndex = (int)animationIndices.get(animName);
 
-            previousTime = currentTime;
+            long currentTime = System.currentTimeMillis();
+
+            if (currentTime - previousTime >= frameTimeInMs)
+            {
+                if (currentFrame < animations.elementAt(currentAnimationIndex).length - 1)
+                {
+                    currentFrame++;
+                }
+                else
+                {
+                    animationIsCompleted = true;
+                    currentFrame = 0;
+                }
+
+                previousTime = currentTime;
+            }
         }
+
     }
 }
