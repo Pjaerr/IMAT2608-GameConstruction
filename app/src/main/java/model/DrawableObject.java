@@ -3,6 +3,8 @@ package model;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.Paint;
 import android.graphics.Rect;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
@@ -30,7 +32,7 @@ public class DrawableObject
 
     private int currentFrame = 0;
 
-    public boolean isAnimated = false;
+    private boolean isAnimated = false;
 
     Resources resources;
 
@@ -102,6 +104,7 @@ public class DrawableObject
 
         /*Setup the bounding rectangle of this object.*/
         m_sprite.setBounds((int)m_pos.x, (int)m_pos.y, (int)(m_pos.x + m_scale.x), (int)(m_pos.y + m_scale.y));
+
     }
 
     private boolean isHidden = false;

@@ -42,6 +42,7 @@ public class GameView extends SurfaceView implements Runnable
         long previousTime = System.nanoTime();
         final int FPS = 60;
         final long OPTIMAL_TIME = 1000000000 / FPS; //Optimal time is 60 frames every second.
+        int frame = 0;
 
         /*This thread should run in the background.*/
         android.os.Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
@@ -62,7 +63,7 @@ public class GameView extends SurfaceView implements Runnable
             deltaTime = timeTaken / ((float)OPTIMAL_TIME); //Delta time. (The value to update by).
 
             Canvas canvas = m_surfaceHolder.lockCanvas(); //Lock canvas.
-            gameLoop.Update(deltaTime); //Update the game.
+            gameLoop.Update(deltaTime, frame); //Update the game.
             gameLoop.Draw(canvas);   //Draw to canvas.
             m_surfaceHolder.unlockCanvasAndPost(canvas); //Unlock canvas.
 
@@ -75,6 +76,8 @@ public class GameView extends SurfaceView implements Runnable
             catch (Exception e){
                 Log.d("Thread", "Tried to put thread to sleep");
             }
+
+            frame++;
         }
     }
 

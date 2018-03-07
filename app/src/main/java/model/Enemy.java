@@ -2,6 +2,7 @@ package model;
 
 import android.content.res.Resources;
 import android.graphics.Bitmap;
+import android.graphics.Path;
 import android.graphics.Rect;
 
 import presenter.Collision;
@@ -9,6 +10,8 @@ import presenter.Collision;
 public class Enemy extends DrawableObject
 {
     private int lives = 1; //Number of lives.
+
+    public boolean isActive = true;
 
     private int movementSpeed = 5; //How fast this enemy moves.
 

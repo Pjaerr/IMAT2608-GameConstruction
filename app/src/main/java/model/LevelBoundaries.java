@@ -43,27 +43,6 @@ public class LevelBoundaries
         bottom = new Rect(0, m_screenSize.y, m_screenSize.x, m_screenSize.y - 20);
     }
 
-    Paint paint = new Paint();
-
-    /*Primarily used for debugging, will draw rectangles at each boundary.*/
-    public void draw(Canvas canvas)
-    {
-        paint.setColor(Color.RED);
-        paint.setStrokeWidth(3);
-        canvas.drawRect((float)left.left, (float)left.top,
-                (float)left.right, (float)left.bottom, paint);
-
-        canvas.drawRect((float)right.left, (float)right.top,
-                (float)right.right, (float)right.bottom, paint);
-
-        canvas.drawRect((float)top.left, (float)top.top,
-                (float)top.right, (float)top.bottom, paint);
-
-        canvas.drawRect((float)bottom.left, (float)bottom.top,
-                (float)bottom.right, (float)bottom.bottom, paint);
-    }
-
-
     public boolean isCollidingWithLeft(Rect rect)
     {
         return (collision.RectInRect(left, rect));
